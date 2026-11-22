@@ -1,5 +1,5 @@
 // Simple offline cache for the KINDRED demo. Bump VERSION after each update.
-const VERSION = 'kindred-v2';
+const VERSION = 'kindred-v4';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

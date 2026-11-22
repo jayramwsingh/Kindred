@@ -1,380 +1,567 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1030">
+<meta name="theme-color" content="#070a1f" id="tc">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="description" content="KINDRED: friends and community, with age-appropriate spaces.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <title>KINDRED</title>
 <!--
-  KINDRED v2 (demo prototype). Sections:
-  1 STYLES · 2 MARKUP · 3 ICONS + DEMO DATA · 4 STATE · 5 VIEWS · 6 ROUTER/EVENTS · 7 PWA
-  SAFETY: fictional people only; age is self-declared (NOT verification); teens never see
-  adult profiles or Dating; Dating tab is a notice-only placeholder for 18+.
+  KINDRED v3 (demo prototype)
+  SECTIONS: 1 STYLES · 2 MARKUP · 3 ICONS + DEMO DATA · 4 STATE · 5 HELPERS · 6 COMPONENTS · 7 VIEWS · 8 SHEETS · 9 ROUTER/EVENTS · 10 PWA
+  SAFETY RULES BUILT IN
+   - Fictional people only. Age is self-declared (NOT verification).
+   - Teens (13-17) only see teen people/groups. Adults only see adult ones.
+   - Dating tab exists only for 18+ and is a notice-only placeholder.
+   - No location, distance, phone, email, photo upload, or real messaging anywhere.
+   - Teens cannot set profile visibility to Public.
+   - Content-Security-Policy meta tag limits what the page may load or run.
 -->
 <style>
 /* ============ 1. STYLES ============ */
-:root{
-  --navy:#0b1030; --navy2:#151c4a; --navy3:#252e6b;
-  --pu:#a78bfa; --pud:#7c5cf0; --pul:#efeaff;
-  --bg:#f4f3fb; --card:#fff; --tx:#141838; --mu:#6a6e8e; --ln:#e6e4f4;
-  --bad:#c2415a; --ok:#2f9e6e; --r:20px;
-  --sh:0 1px 2px rgba(15,21,53,.05),0 8px 24px rgba(15,21,53,.06);
-}
+:root{--pu:#a78bfa;--pud:#7c5cf0;--mint:#5eead4;--r:22px;--glow:rgba(124,92,240,.4);
+  --font:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+[data-theme=dark]{--bg:#070a1f;--bg2:#0e1336;--card:rgba(255,255,255,.055);--solid:#121842;--tx:#f3f4ff;--mu:#9aa0cc;
+  --ln:rgba(255,255,255,.1);--nav:rgba(18,24,66,.88);--inp:rgba(255,255,255,.07);--pul:rgba(167,139,250,.16);
+  --tagc:#cbbcff;--mintc:#5eead4;--badbg:rgba(255,107,139,.14);--badc:#ff8fa8;--glow1:rgba(124,92,240,.3);
+  --sh:0 10px 30px rgba(0,0,0,.35)}
+[data-theme=light]{--bg:#f4f3fb;--bg2:#fff;--card:#fff;--solid:#fff;--tx:#141838;--mu:#6a6e8e;
+  --ln:#e6e4f4;--nav:rgba(255,255,255,.94);--inp:#fff;--pul:#efeaff;
+  --tagc:#7c5cf0;--mintc:#0f8f7e;--badbg:#fdebef;--badc:#c2415a;--glow1:rgba(124,92,240,.16);
+  --sh:0 10px 30px rgba(15,21,53,.09)}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%}
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
-#app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative}
+body{font-family:var(--font);background:radial-gradient(560px 400px at 100% -60px,var(--glow1),transparent 70%),var(--bg);color:var(--tx);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;transition:background-color .25s,color .25s}
+#app{max-width:520px;margin:0 auto;min-height:100vh;position:relative}
 svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
-header.top{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:12px 18px;padding-top:max(12px,env(safe-area-inset-top));position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between}
-.logo{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:.26em;font-size:19px}
-.mark{width:28px;height:28px}
-.chip{font-size:12px;font-weight:600;background:rgba(167,139,250,.18);color:#d9ceff;padding:5px 11px;border-radius:99px;border:1px solid rgba(167,139,250,.35)}
-.chip.adult{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3)}
-main{padding:18px 16px 104px;animation:fade .25s ease}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-h1{font-size:24px;letter-spacing:-.01em;margin-bottom:2px}
-h2{font-size:18px;margin-bottom:6px}
+header.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;padding-top:max(12px,env(safe-area-inset-top));background:linear-gradient(var(--bg) 55%,transparent);backdrop-filter:blur(10px)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.28em;font-size:18px}
+.mark{width:30px;height:30px}
+.chip{font-size:12px;font-weight:700;color:var(--tagc);background:var(--pul);padding:6px 12px;border-radius:99px;border:1px solid var(--ln)}
+main{padding:10px 16px 118px}
+h1{font-size:26px;letter-spacing:-.02em;line-height:1.15;margin-bottom:4px}
+h2{font-size:18px;letter-spacing:-.01em;margin-bottom:6px;display:flex;align-items:center;gap:8px}
 .sub{color:var(--mu);font-size:14px;margin-bottom:16px}
-.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:var(--sh)}
-.row{display:flex;gap:12px;align-items:center}
-.grow{flex:1;min-width:0}
-.avatar{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;flex:none;background:linear-gradient(135deg,var(--a),var(--b))}
-.avatar.lg{width:104px;height:104px;border-radius:32px;font-size:36px;margin:0 auto 10px;box-shadow:0 10px 28px rgba(124,92,240,.35)}
-.name{font-weight:700}
-.meta{color:var(--mu);font-size:13px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:var(--sh);backdrop-filter:blur(12px)}
+.row{display:flex;gap:12px;align-items:center}.grow{flex:1;min-width:0}
+.name{font-weight:700}.meta{color:var(--mu);font-size:13px}.mint{color:var(--mintc);font-weight:700}
 .bio{font-size:14.5px;margin:10px 0 4px}
+.avatar{width:50px;height:50px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-weight:800;font-size:17px;flex:none;background:linear-gradient(135deg,var(--a),var(--b))}
+.avatar.sm{width:32px;height:32px;font-size:12px}.avatar.xl{width:100px;height:100px;font-size:34px}
+.avatar.ring{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--pu),0 10px 30px var(--glow)}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.tag{background:var(--pul);color:var(--pud);font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px}
+.tag{background:var(--pul);color:var(--tagc);font-size:12px;font-weight:600;padding:4px 11px;border-radius:99px}
 .tag.hit{background:var(--pud);color:#fff}
-.shared{font-size:12px;font-weight:700;color:var(--ok);margin-top:8px}
-button{font:inherit;border:0;border-radius:14px;padding:11px 16px;font-weight:650;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:transform .08s}
+.shared{font-size:12px;font-weight:700;color:var(--mintc);margin-top:8px}
+button{font:inherit;color:inherit;border:0;border-radius:14px;padding:11px 16px;font-weight:650;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:transform .08s,opacity .2s}
 button:active{transform:scale(.97)}
-.bp{background:linear-gradient(135deg,var(--pud),#8f6cf5);color:#fff;box-shadow:0 6px 16px rgba(124,92,240,.3)}
-.bs{background:var(--pul);color:var(--pud)}
-.bd{background:#fdebef;color:var(--bad)}
-.bo{background:transparent;border:1.5px solid var(--ln);color:var(--tx)}
+.bp{background:linear-gradient(135deg,var(--pud),#9b7bff);color:#fff;box-shadow:0 8px 20px var(--glow)}
+.bs{background:var(--pul);color:var(--tagc)}
+.bd{background:var(--badbg);color:var(--badc)}
+.bo{background:transparent;border:1.5px solid var(--ln)}
 .bt{background:none;color:var(--mu);min-height:36px;padding:6px 10px;font-size:13px;font-weight:600}
-.bt.on{color:var(--pud)}
-button[disabled]{opacity:.65;box-shadow:none;cursor:default}
-.full{width:100%}
-.acts{display:flex;gap:8px;margin-top:12px}.acts>button{flex:1}
+.bt.on{color:var(--pu)}.bt.on svg{fill:var(--pu)}
+.lnk{background:none;color:var(--tagc);padding:0;min-height:0;font-size:13px;font-weight:700;display:inline}
+button[disabled]{opacity:.6;box-shadow:none;cursor:default}
+.full{width:100%}.acts{display:flex;gap:8px;margin-top:12px}.acts>button{flex:1}
 .mini{display:flex;justify-content:flex-end;gap:2px;margin-top:6px}
-label{display:block;font-weight:650;font-size:14px;margin:14px 0 5px}
-input,textarea{font:inherit;width:100%;padding:12px 13px;border:1.5px solid var(--ln);border-radius:14px;background:#fff;color:var(--tx)}
+label{display:block;font-weight:650;font-size:14px;margin:14px 0 6px}
+input,textarea{font:inherit;width:100%;padding:13px 14px;border:1.5px solid var(--ln);border-radius:16px;background:var(--inp);color:var(--tx)}
+input::placeholder,textarea::placeholder{color:var(--mu)}
 input:focus,textarea:focus{outline:2px solid var(--pu);border-color:var(--pu)}
-input:disabled{background:var(--bg);color:var(--mu)}
-textarea{min-height:84px;resize:vertical}
+input:disabled{opacity:.6}textarea{min-height:84px;resize:vertical}
 .check{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:14px;margin-top:14px}
-.check input{width:22px;height:22px;flex:none;margin-top:1px}
-nav.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:var(--navy);display:flex;padding:4px 6px calc(4px + env(safe-area-inset-bottom));z-index:6;border-radius:22px 22px 0 0}
-nav.bottom button{flex:1;background:none;color:#9aa0d0;padding:8px 0 6px;font-size:11px;flex-direction:column;gap:3px;position:relative;border-radius:14px;min-height:56px}
-nav.bottom button.on{color:#fff}
-nav.bottom button.on::before{content:"";position:absolute;top:2px;width:30px;height:3px;border-radius:3px;background:var(--pu)}
-nav.bottom button.on svg{stroke:var(--pu)}
-.badge{position:absolute;top:3px;left:calc(50% + 7px);background:var(--pu);color:var(--navy);font-size:10px;font-weight:800;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
-.hero{background:radial-gradient(circle at 80% 0%,#3a3f9c 0,transparent 55%),linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;border-radius:28px;padding:30px 22px 26px;margin-bottom:16px;text-align:center;overflow:hidden}
-.hero .mark{width:64px;height:64px;margin-bottom:10px}
-.hero .wm{font-weight:800;letter-spacing:.3em;font-size:30px}
-.hero p{color:#cfd3f5;margin-top:8px;font-size:15px}
-.feats{display:flex;gap:8px;margin-top:20px}
-.feat{flex:1;background:rgba(255,255,255,.08);border-radius:16px;padding:12px 6px;font-size:12px;font-weight:600}
-.feat svg{display:block;margin:0 auto 6px;color:var(--pu)}
-.notice{background:linear-gradient(160deg,var(--navy),var(--navy3));color:#fff;border-radius:24px;padding:26px 20px;text-align:center}
-.notice .ring{width:68px;height:68px;border-radius:50%;background:rgba(167,139,250,.2);display:grid;place-items:center;margin:0 auto 12px;color:var(--pu)}
-.notice .ring svg{width:32px;height:32px}
-.notice p{color:#d3d6f6;font-size:15px}
-.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;scrollbar-width:none}
-.filters::-webkit-scrollbar{display:none}
-.f{flex:none;background:#fff;border:1.5px solid var(--ln);color:var(--tx);padding:7px 14px;min-height:36px;border-radius:99px;font-size:13px}
-.f.on{background:var(--navy);color:#fff;border-color:var(--navy)}
-.gicon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:linear-gradient(135deg,var(--a),var(--b))}
-.cm{background:var(--bg);border-radius:14px;padding:9px 12px;margin-top:8px;font-size:14px}
-.cm b{font-size:13px}
-.inl{display:flex;gap:8px;margin-top:10px}.inl input{flex:1}.inl button{flex:none}
-.back{background:none;color:var(--pud);padding:4px 0;min-height:36px;margin-bottom:6px}
-.empty{text-align:center;color:var(--mu);padding:36px 10px}
-.empty svg{width:40px;height:40px;color:var(--pu);margin-bottom:8px}
-.tip{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--ln);font-size:14px}
-.tip:first-of-type{border-top:0}
-.tip svg{color:var(--pud);margin-top:2px}
-.toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:99px;font-size:14px;z-index:9;box-shadow:0 8px 24px rgba(0,0,0,.28)}
-.err{color:var(--bad);font-size:14px;margin-top:10px}
+.check input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--pud)}
+.err{color:var(--badc);font-size:14px;margin-top:10px}
 .foot{font-size:12px;color:var(--mu);text-align:center;margin-top:20px}
+/* nav */
+nav.bottom{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom));width:calc(100% - 24px);max-width:496px;background:var(--nav);backdrop-filter:blur(18px);border:1px solid var(--ln);border-radius:30px;display:flex;padding:6px;z-index:6;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+nav.bottom button{flex:1;background:none;color:var(--mu);flex-direction:column;gap:2px;font-size:10.5px;min-height:54px;border-radius:24px;position:relative;padding:6px 0}
+nav.bottom button.on{color:#fff;background:linear-gradient(135deg,var(--pud),#9b7bff);box-shadow:0 8px 20px var(--glow)}
+.badge{position:absolute;top:3px;left:calc(50% + 6px);background:var(--mint);color:#06221e;font-size:10px;font-weight:800;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
+/* waves + hero */
+.waves{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.waves path{fill:none;stroke:var(--wv,#a78bfa);stroke-width:1.1}
+.hero{position:relative;border-radius:34px;overflow:hidden;min-height:300px;background:linear-gradient(165deg,#04061a,#150d45 68%,#2a1a7a);color:#fff;display:flex;align-items:flex-end;padding:26px 22px;margin-bottom:16px;box-shadow:var(--sh)}
+.hc{position:relative}.hc .mark{width:54px;height:54px;margin-bottom:12px}
+.wm{font-weight:800;letter-spacing:.32em;font-size:15px;color:#cbbcff}
+.ht{font-size:34px;margin:6px 0 8px}.hc p{color:#cfd3f5;font-size:15px}
 .seg{display:flex;gap:8px;margin-top:12px}.seg>button{flex:1}
+/* tabs, chips */
+.tabs{display:flex;border-bottom:1px solid var(--ln);margin-bottom:14px}
+.tabs button{flex:1;background:none;border-radius:0;color:var(--mu);border-bottom:2.5px solid transparent;min-height:46px}
+.tabs button.on{color:var(--tx);border-color:var(--pu)}
+.filters{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}.filters::-webkit-scrollbar{display:none}
+.f{flex:none;background:var(--card);border:1.5px solid var(--ln);padding:7px 15px;min-height:36px;border-radius:99px;font-size:13px}
+.f.on{background:var(--pud);color:#fff;border-color:var(--pud)}
+/* orbit */
+.orbit{position:relative;width:100%;aspect-ratio:1;max-width:400px;margin:6px auto 4px}
+.rg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;border:1px dashed var(--ln)}
+.core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center}
+.pulse{position:absolute;width:56px;height:56px;border-radius:50%;background:var(--glow);animation:pulse 2.8s ease-out infinite}
+@keyframes pulse{0%{transform:scale(.9);opacity:.7}100%{transform:scale(3.2);opacity:0}}
+.node{position:absolute;transform:translate(-50%,-50%);padding:0;background:none;min-height:0;border-radius:50%;animation:floaty 5s ease-in-out infinite}
+.node:nth-child(2n){animation-delay:-2s}.node:nth-child(3n){animation-delay:-3.5s}
+@keyframes floaty{0%,100%{margin-top:0}50%{margin-top:-5px}}
+.node .avatar{width:46px;height:46px;font-size:15px;border:2px solid var(--bg2)}
+.pc{position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;background:var(--mint);color:#06221e;padding:1px 6px;border-radius:99px}
+/* tiles */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.tile{position:relative;aspect-ratio:3/4;border-radius:24px;overflow:hidden;background:linear-gradient(160deg,var(--a),var(--b));cursor:pointer;color:#fff;box-shadow:var(--sh);border:1px solid var(--ln)}
+.tile .waves{--wv:#fff;opacity:.28}
+.big{position:absolute;inset:0;display:grid;place-items:center;font-size:78px;font-weight:800;opacity:.22;letter-spacing:-.04em}
+.mt{position:absolute;top:10px;left:10px;font-size:11px;font-weight:800;background:rgba(7,10,31,.55);backdrop-filter:blur(6px);padding:4px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.25)}
+.ov{position:absolute;left:0;right:0;bottom:0;padding:36px 14px 13px;background:linear-gradient(transparent,rgba(5,8,28,.85))}
+.tn{font-weight:800;font-size:16px}.ti{font-size:12px;opacity:.85;margin-top:1px;padding-right:44px}
+.add{position:absolute;right:10px;bottom:10px;width:40px;height:40px;border-radius:50%;background:#fff;color:var(--pud);padding:0;min-height:0}
+.frow{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:none}.frow::-webkit-scrollbar{display:none}
+.fr{background:none;flex-direction:column;gap:6px;padding:0;min-height:0;font-size:12px;color:var(--mu);flex:none}
+.fr .avatar{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--pu)}
+/* masonry */
+.mason{column-count:2;column-gap:12px;margin-bottom:14px}
+.mtile{position:relative;break-inside:avoid;margin-bottom:12px;border-radius:24px;overflow:hidden;background:linear-gradient(160deg,var(--a),var(--b));color:#fff;padding:14px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--sh);border:1px solid var(--ln)}
+.mtile .waves{--wv:#fff;opacity:.25}.mtile>*{position:relative}.mtile .waves{position:absolute}
+.mtile .em{font-size:34px}.mtile .gn{font-weight:800;font-size:16px;line-height:1.2}.mtile .gm{font-size:12px;opacity:.85;margin-bottom:8px}
+.mtile button{background:rgba(255,255,255,.95);color:var(--pud);min-height:34px;padding:6px 14px;font-size:13px;border-radius:99px}
+.mtile button.joined{background:rgba(7,10,31,.5);color:#fff}
+/* group header, posts */
+.gh{position:relative;border-radius:28px;overflow:hidden;padding:22px 18px;color:#fff;background:linear-gradient(150deg,var(--a),var(--b));margin-bottom:14px;box-shadow:var(--sh)}
+.gh .waves{--wv:#fff;opacity:.28}.gh>*{position:relative}.gh .waves{position:absolute}
+.back{background:none;color:var(--tagc);padding:4px 0;min-height:36px;margin-bottom:6px}
+.cmt{display:flex;gap:8px;margin-top:10px;align-items:flex-start}
+.bub{background:var(--inp);border:1px solid var(--ln);border-radius:4px 16px 16px 16px;padding:8px 12px;font-size:14px;max-width:85%}
+.bub b{display:block;font-size:12px;color:var(--mu);font-weight:700}
+.cmt.me{flex-direction:row-reverse}.cmt.me .bub{background:linear-gradient(135deg,var(--pud),#9b7bff);color:#fff;border:0;border-radius:16px 4px 16px 16px}.cmt.me .bub b{color:#e6dcff}
+.inl{display:flex;gap:8px;margin-top:12px}.inl input{flex:1}.inl button{flex:none;padding:0 16px}
+/* profile */
+.banner{position:relative;height:150px;border-radius:30px;overflow:hidden;background:linear-gradient(135deg,#070a24,#2b1a80)}
+.gear{position:absolute;top:12px;right:12px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;padding:0;backdrop-filter:blur(8px)}
+.pfh{text-align:center;margin:-52px 0 16px;position:relative}
+.pfh .avatar{margin-bottom:10px}
+.stats{display:flex;gap:8px;margin-bottom:14px}
+.stat{flex:1;text-align:center;background:var(--card);border:1px solid var(--ln);border-radius:20px;padding:12px 4px}
+.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--mu)}
+/* settings */
+.set{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--ln)}.set:first-of-type{border-top:0}
+.set svg{color:var(--pu)}
+.tg{width:52px;height:32px;border-radius:32px;background:var(--ln);position:relative;padding:0;min-height:0;flex:none;transition:background .2s}
+.tg::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s}
+.tg[aria-checked=true]{background:var(--pud)}.tg[aria-checked=true]::after{left:24px}
+.opt{width:100%;text-align:left;justify-content:space-between;background:var(--inp);border:1.5px solid var(--ln);border-radius:18px;margin-top:8px;padding:12px 14px;font-weight:600;font-size:15px;flex-direction:row}
+.opt small{display:block;font-weight:400;color:var(--mu);font-size:13px;margin-top:2px}
+.opt.on{border-color:var(--pu);background:var(--pul)}.opt.on svg{color:var(--pu)}
+.tip{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--ln);font-size:14px}.tip:first-of-type{border-top:0}.tip svg{color:var(--pu);margin-top:2px}
+.privnote{display:flex;gap:10px;align-items:center;background:var(--pul);border-radius:14px;padding:10px 12px;font-size:13px;color:var(--tagc);margin:12px 0}
+.notice{position:relative;overflow:hidden;background:linear-gradient(160deg,#04061a,#1a1060);color:#fff;border-radius:30px;padding:34px 22px;text-align:center}
+.notice>*{position:relative}.notice .ring{width:72px;height:72px;border-radius:50%;background:rgba(167,139,250,.22);display:grid;place-items:center;margin:0 auto 14px;color:#cbbcff}
+.notice .ring svg{width:32px;height:32px}.notice h2{justify-content:center}.notice p{color:#d3d6f6;font-size:15px}
+.empty{text-align:center;color:var(--mu);padding:34px 10px}.empty svg{width:42px;height:42px;color:var(--pu);margin-bottom:8px}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--solid);color:var(--tx);border:1px solid var(--ln);padding:11px 18px;border-radius:99px;font-size:14px;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.35);max-width:92%;text-align:center}
+/* sheet */
+#sheet .bg{position:fixed;inset:0;background:rgba(3,5,20,.62);backdrop-filter:blur(3px);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+#sheet .sh{width:100%;max-width:520px;background:var(--solid);border-radius:30px 30px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;border:1px solid var(--ln);border-bottom:0}
+#sheet .anim{animation:fadeIn .2s}#sheet .anim .sh{animation:up .28s ease}
+.grab{width:42px;height:5px;border-radius:5px;background:var(--ln);margin:6px auto 16px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+main.rise{animation:rise .3s ease}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <!-- ============ 2. MARKUP ============ -->
 <div id="app">
   <header class="top">
-    <div class="logo"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><circle cx="15" cy="20" r="11" fill="none" stroke="#a78bfa" stroke-width="3.5"/><circle cx="25" cy="20" r="11" fill="none" stroke="#fff" stroke-width="3.5" opacity=".95"/></svg>KINDRED</div>
+    <div class="logo"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><circle cx="15" cy="20" r="11" fill="none" stroke="#a78bfa" stroke-width="3.5"/><circle cx="25" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="3.5"/></svg>KINDRED</div>
     <div class="chip" id="chip">Demo</div>
   </header>
   <main id="view"></main>
   <nav class="bottom" id="nav" hidden></nav>
 </div>
+<div id="sheet"></div>
 
 <script>
 /* ============ 3. ICONS + DEMO DATA (all fictional) ============ */
-const P = {
-  users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14c2.5 0 4.5 2 4.5 4.5"/>',
-  mail:'<rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/>',
-  chat:'<path d="M5 4.5h14a2 2 0 012 2v9a2 2 0 01-2 2h-8l-5 3.5v-3.5H5a2 2 0 01-2-2v-9a2 2 0 012-2z"/>',
-  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
-  lock:'<rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 018 0v3"/>',
-  heart:'<path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z"/>',
-  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
-  flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
-  ban:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
-  check:'<path d="M5 12.5l4.5 4.5L19 7"/>',
-  x:'<path d="M6 6l12 12M18 6L6 18"/>',
-  plus:'<path d="M12 5v14M5 12h14"/>',
-  eye:'<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'
+const P={
+ users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14c2.5 0 4.5 2 4.5 4.5"/>',
+ mail:'<rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/>',
+ chat:'<path d="M5 4.5h14a2 2 0 012 2v9a2 2 0 01-2 2h-8l-5 3.5v-3.5H5a2 2 0 01-2-2v-9a2 2 0 012-2z"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+ lock:'<rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+ heart:'<path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z"/>',
+ shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+ flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+ ban:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ eye:'<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+ sliders:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+ moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>',
+ bell:'<path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 004 0"/>',
+ send:'<path d="M4 12l16-8-6 16-3-7z"/>',
+ back:'<path d="M15 5l-7 7 7 7"/>',
+ pin:'<path d="M12 21s-6-5.5-6-10a6 6 0 0112 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>'
 };
-const ic = n => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
+const ic=n=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
 
-const DATA = {
-  teen: {
-    people: [
-      {id:'t1',name:'Maya R.',age:15,bio:'Sketchbook always in my bag. Looking for art buddies!',interests:['Drawing','Anime','Baking']},
-      {id:'t2',name:'Leo K.',age:14,bio:'Robotics club and board games. Ask me about my robot.',interests:['Robotics','Board games','Soccer']},
-      {id:'t3',name:'Zara P.',age:16,bio:'Book lover. Reading way too many series at once.',interests:['Reading','Poetry','Piano']},
-      {id:'t4',name:'Sam T.',age:17,bio:'Exam prep by day, chess by night.',interests:['Chess','Maths','Cycling']},
-      {id:'t5',name:'Ria D.',age:15,bio:'Dance practice every evening. Say hi!',interests:['Dance','Music','Photography']},
-      {id:'t6',name:'Theo B.',age:13,bio:'New here. I like space and Minecraft.',interests:['Space','Minecraft','Drawing']}
-    ],
-    incoming: [
-      {id:'ti1',name:'Noah C.',age:16,bio:'Cricket and coding. Looking for a study group.',interests:['Cricket','Coding','Maths']},
-      {id:'ti2',name:'Ivy M.',age:14,bio:'I make tiny comics about my cat.',interests:['Comics','Cats','Drawing']}
-    ],
-    groups: [
-      {id:'tg1',icon:'📚',name:'Study Buddies',desc:'Homework help, exam tips and focus sessions.',members:124,posts:[
-        {id:'tp1',by:'Sam T.',text:'Anyone up for a 25-minute focus sprint tonight? We can share tips after.',comments:[{by:'Zara P.',text:'I am in! Maths revision for me.'}]},
-        {id:'tp2',by:'Leo K.',text:'Best trick for remembering formulas?',comments:[{by:'Maya R.',text:'I draw them as little posters.'},{by:'Sam T.',text:'Flashcards before bed work for me.'}]}]},
-      {id:'tg2',icon:'🎮',name:'Game Night',desc:'Friendly, age-appropriate games and board-game chat.',members:98,posts:[
-        {id:'tp3',by:'Theo B.',text:'Favorite co-op game that is easy to learn?',comments:[{by:'Leo K.',text:'Try a build-and-survive game with friends!'}]}]},
-      {id:'tg3',icon:'🎨',name:'Art Corner',desc:'Share drawings and get kind feedback.',members:76,posts:[
-        {id:'tp4',by:'Maya R.',text:'Posted my first watercolor sky. Be gentle, haha.',comments:[{by:'Ria D.',text:'Love the colors!'}]}]},
-      {id:'tg4',icon:'📖',name:'Book Club',desc:'One book a month. Spoiler tags please.',members:61,posts:[
-        {id:'tp5',by:'Zara P.',text:'Vote for next month: mystery or fantasy?',comments:[]}]}
-    ]
-  },
-  adult: {
-    people: [
-      {id:'a1',name:'Priya S.',age:27,bio:'Product designer. Weekend hiker and coffee snob.',interests:['Hiking','Design','Coffee']},
-      {id:'a2',name:'Marcus L.',age:31,bio:'Teacher by day, amateur baker by night.',interests:['Baking','Podcasts','Running']},
-      {id:'a3',name:'Elena V.',age:24,bio:'New in town. Would love to find a book club.',interests:['Reading','Yoga','Travel']},
-      {id:'a4',name:'Daniel O.',age:35,bio:'Software dev. Board games and bad puns.',interests:['Board games','Cooking','Cycling']},
-      {id:'a5',name:'Aisha K.',age:29,bio:'Nurse. Looking for a gym or swim buddy.',interests:['Swimming','Gardening','Films']},
-      {id:'a6',name:'Tom H.',age:41,bio:'Dad of two. Always up for a weekend park meetup.',interests:['Football','Grilling','Photography']}
-    ],
-    incoming: [
-      {id:'ai1',name:'Jordan P.',age:28,bio:'Freelance writer, new to the area.',interests:['Writing','Running','Coffee']},
-      {id:'ai2',name:'Sofia G.',age:33,bio:'Into cooking classes and weekend markets.',interests:['Cooking','Markets']}
-    ],
-    groups: [
-      {id:'ag1',icon:'💼',name:'Career Talk',desc:'Advice, interview tips and career pivots.',members:212,posts:[
-        {id:'ap1',by:'Marcus L.',text:'How do you ask for feedback without sounding anxious?',comments:[{by:'Priya S.',text:'Ask for one specific thing to improve.'}]}]},
-      {id:'ag2',icon:'🏃',name:'Fitness Friends',desc:'Runs, swims and gym accountability.',members:158,posts:[
-        {id:'ap2',by:'Aisha K.',text:'Saturday morning group walk, all paces welcome.',comments:[{by:'Daniel O.',text:'Count me in!'}]}]},
-      {id:'ag3',icon:'🍳',name:'Cooking Circle',desc:'Recipes, swaps and kitchen disasters.',members:134,posts:[
-        {id:'ap3',by:'Elena V.',text:'Your go-to 20-minute dinner?',comments:[]}]},
-      {id:'ag4',icon:'🌳',name:'Local Meetups',desc:'Casual public meetups: parks, cafes, markets.',members:89,posts:[
-        {id:'ap4',by:'Tom H.',text:'Park picnic next weekend. Bring snacks and a frisbee.',comments:[{by:'Jordan P.',text:'Sounds fun.'}]}]}
-    ]
-  }
+const DATA={
+ teen:{
+  people:[
+   {id:'t1',name:'Maya R.',age:15,bio:'Sketchbook always in my bag. Looking for art buddies!',interests:['Drawing','Anime','Baking']},
+   {id:'t2',name:'Leo K.',age:14,bio:'Robotics club and board games. Ask me about my robot.',interests:['Robotics','Board games','Soccer']},
+   {id:'t3',name:'Zara P.',age:16,bio:'Book lover. Reading way too many series at once.',interests:['Reading','Poetry','Piano']},
+   {id:'t4',name:'Sam T.',age:17,bio:'Exam prep by day, chess by night.',interests:['Chess','Maths','Cycling']},
+   {id:'t5',name:'Ria D.',age:15,bio:'Dance practice every evening. Say hi!',interests:['Dance','Music','Photography']},
+   {id:'t6',name:'Theo B.',age:13,bio:'New here. I like space and Minecraft.',interests:['Space','Minecraft','Drawing']}],
+  incoming:[
+   {id:'ti1',name:'Noah C.',age:16,bio:'Cricket and coding. Looking for a study group.',interests:['Cricket','Coding','Maths']},
+   {id:'ti2',name:'Ivy M.',age:14,bio:'I make tiny comics about my cat.',interests:['Comics','Cats','Drawing']}],
+  groups:[
+   {id:'tg1',icon:'📚',name:'Study Buddies',desc:'Homework help, exam tips and focus sessions.',members:124,posts:[
+    {id:'tp1',by:'Sam T.',text:'Anyone up for a 25-minute focus sprint tonight? We can share tips after.',comments:[{by:'Zara P.',text:'I am in! Maths revision for me.'}]},
+    {id:'tp2',by:'Leo K.',text:'Best trick for remembering formulas?',comments:[{by:'Maya R.',text:'I draw them as little posters.'},{by:'Sam T.',text:'Flashcards before bed work for me.'}]}]},
+   {id:'tg2',icon:'🎮',name:'Game Night',desc:'Friendly, age-appropriate games and board-game chat.',members:98,posts:[
+    {id:'tp3',by:'Theo B.',text:'Favorite co-op game that is easy to learn?',comments:[{by:'Leo K.',text:'Try a build-and-survive game with friends!'}]}]},
+   {id:'tg3',icon:'🎨',name:'Art Corner',desc:'Share drawings and get kind feedback.',members:76,posts:[
+    {id:'tp4',by:'Maya R.',text:'Posted my first watercolor sky. Be gentle, haha.',comments:[{by:'Ria D.',text:'Love the colors!'}]}]},
+   {id:'tg4',icon:'📖',name:'Book Club',desc:'One book a month. Spoiler tags please.',members:61,posts:[
+    {id:'tp5',by:'Zara P.',text:'Vote for next month: mystery or fantasy?',comments:[]}]}]},
+ adult:{
+  people:[
+   {id:'a1',name:'Priya S.',age:27,bio:'Product designer. Weekend hiker and coffee snob.',interests:['Hiking','Design','Coffee']},
+   {id:'a2',name:'Marcus L.',age:31,bio:'Teacher by day, amateur baker by night.',interests:['Baking','Podcasts','Running']},
+   {id:'a3',name:'Elena V.',age:24,bio:'New in town. Would love to find a book club.',interests:['Reading','Yoga','Travel']},
+   {id:'a4',name:'Daniel O.',age:35,bio:'Software dev. Board games and bad puns.',interests:['Board games','Cooking','Cycling']},
+   {id:'a5',name:'Aisha K.',age:29,bio:'Nurse. Looking for a gym or swim buddy.',interests:['Swimming','Gardening','Films']},
+   {id:'a6',name:'Tom H.',age:41,bio:'Dad of two. Always up for a weekend park meetup.',interests:['Football','Grilling','Photography']}],
+  incoming:[
+   {id:'ai1',name:'Jordan P.',age:28,bio:'Freelance writer, new to the area.',interests:['Writing','Running','Coffee']},
+   {id:'ai2',name:'Sofia G.',age:33,bio:'Into cooking classes and weekend markets.',interests:['Cooking','Markets']}],
+  groups:[
+   {id:'ag1',icon:'💼',name:'Career Talk',desc:'Advice, interview tips and career pivots.',members:212,posts:[
+    {id:'ap1',by:'Marcus L.',text:'How do you ask for feedback without sounding anxious?',comments:[{by:'Priya S.',text:'Ask for one specific thing to improve.'}]}]},
+   {id:'ag2',icon:'🏃',name:'Fitness Friends',desc:'Runs, swims and gym accountability.',members:158,posts:[
+    {id:'ap2',by:'Aisha K.',text:'Saturday morning group walk, all paces welcome.',comments:[{by:'Daniel O.',text:'Count me in!'}]}]},
+   {id:'ag3',icon:'🍳',name:'Cooking Circle',desc:'Recipes, swaps and kitchen disasters.',members:134,posts:[
+    {id:'ap3',by:'Elena V.',text:'Your go-to 20-minute dinner?',comments:[]}]},
+   {id:'ag4',icon:'🌳',name:'Local Meetups',desc:'Casual public meetups: parks, cafes, markets.',members:89,posts:[
+    {id:'ap4',by:'Tom H.',text:'Park picnic next weekend. Bring snacks and a frisbee.',comments:[{by:'Jordan P.',text:'Sounds fun.'}]}]}]}
 };
-const PAL = [['#7c5cf0','#a78bfa'],['#3b5bdb','#7c9cff'],['#a35bd6','#d49cff'],['#4c6ef5','#9bb0ff'],['#6d4de0','#b79dff'],['#2a3470','#6b78d6']];
+const PAL=[['#5b3fd6','#a78bfa'],['#2b3fa8','#6f8cff'],['#8a3fc7','#d58bff'],['#1d6fa5','#5ec8e8'],['#b0438a','#ff9ccb'],['#2a2f7a','#7a6cf0']];
+const AGO=['12m','1h','2h','3h','5h','1d'];
 
 /* ============ 4. STATE ============ */
-const KEY = 'kindred-demo-v2';
-const fresh = () => ({user:null, sent:{}, resolved:{}, joined:{}, comments:{}, newPosts:{}, likes:{}, blocked:{}, filter:'All'});
-let S = (() => { try{ return Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY)||'{}')); }catch(e){ return fresh(); } })();
-const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
-const band = () => S.user && S.user.age >= 18 ? 'adult' : 'teen';
-const D = () => DATA[band()];
+const KEY='kindred-demo-v2';
+const fresh=()=>({user:null,sent:{},resolved:{},joined:{},comments:{},newPosts:{},likes:{},blocked:{},filter:'All',ctab:'foryou',
+  settings:{vis:'friends',reqs:'all',notif:true,theme:'dark'}});
+let S=(()=>{try{const o=JSON.parse(localStorage.getItem(KEY)||'{}');const m=Object.assign(fresh(),o);m.settings=Object.assign(fresh().settings,o.settings||{});return m}catch(e){return fresh()}})();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const resetKeepTheme=()=>{const t=S.settings.theme;S=fresh();S.settings.theme=t};
+const band=()=>S.user&&S.user.age>=18?'adult':'teen';
+const D=()=>DATA[band()];
+let SHEET=null;   // {k:'person'|'report', id}
 
-const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const hash = s => [...s].reduce((a,c)=>a+c.charCodeAt(0),0);
-const initials = n => n.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('') || '?';
-const avatar = (n, cls='') => { const [a,b]=PAL[hash(n)%PAL.length]; return `<div class="avatar ${cls}" style="--a:${a};--b:${b}" aria-hidden="true">${esc(initials(n))}</div>`; };
-const mine = () => (S.user.interests||[]).map(x=>x.toLowerCase());
-const tags = (arr, hl=true) => `<div class="tags">${arr.map(t=>`<span class="tag ${hl&&mine().includes(t.toLowerCase())?'hit':''}">${esc(t)}</span>`).join('')}</div>`;
-const sharedCount = p => p.interests.filter(t=>mine().includes(t.toLowerCase())).length;
-const pending = () => D().incoming.filter(p => !S.resolved[p.id] && !S.blocked[p.id]);
-function toast(m){ const t=document.createElement('div'); t.className='toast'; t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),1800); }
-const foot = () => `<p class="foot">Demo only · fictional people · nothing leaves this device</p>`;
-
-/* ============ 5. VIEWS ============ */
-const personCard = (p, extra) => {
-  const sc = sharedCount(p);
-  return `<div class="card"><div class="row">${avatar(p.name)}
-    <div class="grow"><div class="name">${esc(p.name)}</div><div class="meta">Age ${p.age}</div></div></div>
-    <p class="bio">${esc(p.bio)}</p>${tags(p.interests)}
-    ${sc?`<div class="shared">✓ ${sc} shared interest${sc>1?'s':''} with you</div>`:''}
-    ${extra}
-    <div class="mini"><button class="bt" data-act="report" data-id="${p.id}">${ic('flag')}Report</button><button class="bt" data-act="block" data-id="${p.id}">${ic('ban')}Block</button></div></div>`;
-};
-
-const Views = {
-  welcome(){
-    return `<div class="hero">
-      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><circle cx="15" cy="20" r="11" fill="none" stroke="#a78bfa" stroke-width="3.2"/><circle cx="25" cy="20" r="11" fill="none" stroke="#fff" stroke-width="3.2"/></svg>
-      <div class="wm">KINDRED</div><p>Find your people. Friends and community, in spaces made for your age.</p>
-      <div class="feats"><div class="feat">${ic('users')}Friends</div><div class="feat">${ic('chat')}Community</div><div class="feat">${ic('shield')}Safe spaces</div></div></div>
-    <div class="card"><h2>Demo sign-in</h2>
-      <p class="meta">No email, password, phone or ID. Use a nickname, not your real name.</p>
-      <form id="signin" autocomplete="off">
-        <label for="nick">Nickname</label><input id="nick" maxlength="24" placeholder="e.g. Sky" required>
-        <label for="age">Age</label><input id="age" type="number" min="1" max="99" inputmode="numeric" placeholder="Your age" required>
-        <label class="check"><input type="checkbox" required><span>I understand this is a demo with fictional people, and I will not share personal details.</span></label>
-        <div class="err" id="err" role="alert"></div>
-        <button class="bp full" style="margin-top:14px">Enter KINDRED</button></form>
-      <div class="seg"><button class="bs" data-act="demo" data-age="15">Try as teen</button><button class="bs" data-act="demo" data-age="27">Try as adult</button></div>
-      <p class="foot" style="margin-top:12px">Age is self-declared in this demo. Real verification is not built yet.</p></div>`;
-  },
-
-  friends(){
-    const all = D().people.filter(p=>!S.blocked[p.id]);
-    const cats = ['All', ...new Set(all.flatMap(p=>p.interests))].slice(0,10);
-    const list = all.filter(p => S.filter==='All' || p.interests.includes(S.filter))
-      .sort((a,b)=>sharedCount(b)-sharedCount(a))
-      .map(p => { const st=S.sent[p.id];
-        return personCard(p, `<div class="acts"><button class="${st?'bs':'bp'}" data-act="send" data-id="${p.id}" ${st?'disabled':''}>${st?ic('check')+'Request sent':'Send Request'}</button></div>`); }).join('');
-    const fr = D().incoming.filter(p=>S.resolved[p.id]==='accepted');
-    return `<h1>Hi, ${esc(S.user.name)} 👋</h1><p class="sub">Friends for ${band()==='adult'?'adults (18+)':'teens (13–17)'}. Add interests in Profile to see better matches.</p>
-      <div class="filters">${cats.map(c=>`<button class="f ${S.filter===c?'on':''}" data-act="filter" data-id="${esc(c)}">${esc(c)}</button>`).join('')}</div>
-      ${list || `<div class="empty">${ic('users')}<br>No one for this filter.</div>`}
-      ${fr.length?`<h2 style="margin-top:10px">Your friends</h2>`+fr.map(p=>`<div class="card row">${avatar(p.name)}<div class="grow"><div class="name">${esc(p.name)}</div><div class="meta">Friends · Age ${p.age}</div></div>${ic('check')}</div>`).join(''):''}${foot()}`;
-  },
-
-  requests(){
-    const items = pending();
-    return `<h1>Requests</h1><p class="sub">You decide who connects with you.</p>` + (items.length ? items.map(p =>
-      personCard(p, `<div class="acts"><button class="bp" data-act="accept" data-id="${p.id}">${ic('check')}Accept</button><button class="bd" data-act="decline" data-id="${p.id}">${ic('x')}Decline</button></div>`)).join('')
-      : `<div class="empty">${ic('mail')}<br>All caught up.<br>No pending requests.</div>`) + foot();
-  },
-
-  community(){
-    return `<h1>Community</h1><p class="sub">Topic groups for ${band()==='adult'?'adults':'teens'}. Be kind, stay on topic.</p>` + D().groups.map(g => {
-      const [a,b]=PAL[hash(g.name)%PAL.length];
-      return `<div class="card"><div class="row"><div class="gicon" style="--a:${a}33;--b:${b}55">${g.icon}</div>
-        <div class="grow"><div class="name">${esc(g.name)}</div><div class="meta">${g.members+(S.joined[g.id]?1:0)} members · ${g.posts.length+(S.newPosts[g.id]||[]).length} posts</div></div></div>
-        <p class="bio">${esc(g.desc)}</p>
-        <div class="acts"><button class="bo" data-act="open" data-id="${g.id}">View posts</button>
-        <button class="${S.joined[g.id]?'bs':'bp'}" data-act="join" data-id="${g.id}">${S.joined[g.id]?ic('check')+'Joined':'Join'}</button></div></div>`; }).join('') + foot();
-  },
-
-  group(id){
-    const g = D().groups.find(x=>x.id===id); if(!g) return Views.community();
-    const posts = [...(S.newPosts[id]||[]), ...g.posts];
-    return `<button class="back" data-act="back">← All groups</button><h1>${g.icon} ${esc(g.name)}</h1><p class="sub">${esc(g.desc)}</p>
-      <form class="card" data-form="post" data-id="${id}"><label for="np" style="margin-top:0">Share something</label>
-        <textarea id="np" maxlength="300" placeholder="Be friendly. Never post phone numbers, address or school." required></textarea>
-        <button class="bp full" style="margin-top:10px">${ic('plus')}Post to group</button></form>` +
-      posts.map(p => { const cs=[...p.comments,...(S.comments[p.id]||[])], liked=S.likes[p.id], n=(hash(p.id)%7)+1+(liked?1:0);
-        return `<div class="card"><div class="row">${avatar(p.by)}<div class="grow"><div class="name">${esc(p.by)}</div></div></div>
-          <p class="bio">${esc(p.text)}</p>
-          <div class="row" style="margin-top:6px"><button class="bt ${liked?'on':''}" data-act="like" data-id="${p.id}">${ic('heart')}${n}</button><span class="meta">${cs.length} comment${cs.length===1?'':'s'}</span></div>
-          ${cs.map(c=>`<div class="cm"><b>${esc(c.by)}</b><br>${esc(c.text)}</div>`).join('')}
-          <form class="inl" data-form="comment" data-id="${p.id}"><input maxlength="200" placeholder="Add a comment…" aria-label="Comment" required><button class="bp">Post</button></form></div>`; }).join('') + foot();
-  },
-
-  profile(){
-    const u = S.user;
-    return `<h1>Your profile</h1><p class="sub">Share only what you are comfortable with.</p>
-      <div class="card" style="text-align:center">${avatar(u.name,'lg')}<div class="meta">Profile photo placeholder (no uploads in this demo)</div>
-        <div class="tag" style="display:inline-block;margin-top:10px">${band()==='adult'?'Adult space · 18+':'Teen space · 13–17'}</div></div>
-      <form class="card" id="profile"><label for="pn" style="margin-top:0">Display name</label><input id="pn" maxlength="24" value="${esc(u.name)}" required>
-        <label>Age</label><input value="${u.age}" disabled>
-        <label for="pb">Bio</label><textarea id="pb" maxlength="160" placeholder="A few words about you">${esc(u.bio||'')}</textarea>
-        <label for="pi">Interests (comma separated)</label><input id="pi" maxlength="80" value="${esc((u.interests||[]).join(', '))}" placeholder="Drawing, Chess, Music">
-        <button class="bp full" style="margin-top:16px">Save profile</button></form>
-      <div class="card"><h2>${ic('shield')} Safety tips</h2>
-        <div class="tip">${ic('eye')}<span>Never share your phone number, address, school or passwords.</span></div>
-        <div class="tip">${ic('flag')}<span>See something wrong? Use Report on any profile.</span></div>
-        <div class="tip">${ic('ban')}<span>Block anyone who makes you uncomfortable.</span></div>
-        <div class="tip">${ic('users')}<span>Tell a trusted adult if something feels off.</span></div></div>
-      <button class="bo full" data-act="signout">Sign out and reset demo</button>${foot()}`;
-  },
-
-  dating(){
-    return `<h1>Dating</h1><p class="sub">Adults only</p>
-      <div class="notice"><div class="ring">${ic('lock')}</div><h2>Dating is for adults aged 18+ only</h2>
-        <p>This is a placeholder. This prototype has no dating profiles, matching or messaging, and none will ever be shown to anyone under 18.</p></div>
-      <div class="card" style="margin-top:14px"><p class="bio" style="margin:0">Your Friends and Community spaces stay completely separate from this section.</p></div>${foot()}`;
+/* ============ 5. HELPERS ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hash=s=>[...String(s)].reduce((a,c)=>a+c.charCodeAt(0),0);
+const initials=n=>n.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'?';
+const pal=n=>PAL[hash(n)%PAL.length];
+const avatar=(n,cls='')=>{const[a,b]=pal(n);return `<span class="avatar ${cls}" style="--a:${a};--b:${b}" aria-hidden="true">${esc(initials(n))}</span>`};
+const mine=()=>(S.user.interests||[]).map(x=>x.toLowerCase());
+const sharedCount=p=>p.interests.filter(t=>mine().includes(t.toLowerCase())).length;
+const matchPct=p=>{const m=mine();if(!m.length)return 0;return Math.round(100*sharedCount(p)/Math.min(m.length,p.interests.length))};
+const tags=a=>`<div class="tags">${a.map(t=>`<span class="tag ${mine().includes(t.toLowerCase())?'hit':''}">${esc(t)}</span>`).join('')}</div>`;
+const everyone=()=>[...D().people,...D().incoming];
+const findPerson=id=>everyone().find(p=>p.id===id);
+const blockedList=()=>everyone().filter(p=>S.blocked[p.id]);
+const pending=()=>D().incoming.filter(p=>!S.resolved[p.id]&&!S.blocked[p.id]);
+const friendsList=()=>D().incoming.filter(p=>S.resolved[p.id]==='accepted'&&!S.blocked[p.id]);
+function toast(m){document.querySelectorAll('.toast').forEach(x=>x.remove());const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+const foot=()=>`<p class="foot">Demo only · fictional people · nothing leaves this device</p>`;
+function waves(n=10,w=400,h=300,seed=1){
+  let g='';
+  for(let i=0;i<n;i++){
+    const y=h*.08+i*(h*.84/Math.max(1,n-1)),a=10+((i+seed)%5)*5,ph=seed*1.3+i*.5;
+    let d='M-10 '+y.toFixed(1);
+    for(let x=0;x<=w+20;x+=14)d+=' L'+x+' '+(y+Math.sin(x/48+ph)*a+Math.cos(x/110+ph*1.6)*a*.9).toFixed(1);
+    g+=`<path d="${d}" stroke-opacity="${(.18+.55*Math.abs(Math.sin(i*1.3+seed))).toFixed(2)}"/>`;
   }
-};
-
-/* ============ 6. ROUTER / EVENTS ============ */
-const NAV = [['friends','users','Friends'],['requests','mail','Requests'],['community','chat','Community'],['profile','user','Profile'],['dating','lock','Dating 18+',true]];
-
-function route(){
-  const h = (location.hash||'').slice(1) || 'friends', nav=$('#nav'), view=$('#view'), chip=$('#chip');
-  if(!S.user){ nav.hidden=true; chip.className='chip'; chip.textContent='Demo'; view.innerHTML=Views.welcome(); return; }
-  const [base,arg] = h.split('/');
-  if(base==='dating' && band()!=='adult'){ location.hash='#friends'; return; }   // safety guard
-  const cur = ['friends','requests','community','profile','dating'].includes(base) ? base : 'friends';
-  chip.className = 'chip'+(band()==='adult'?' adult':''); chip.textContent = band()==='adult'?'Adult · 18+':'Teen · 13–17';
-  view.innerHTML = (cur==='community'&&arg) ? Views.group(arg) : Views[cur]();
-  view.style.animation='none'; void view.offsetWidth; view.style.animation='';
-  nav.hidden=false;
-  nav.innerHTML = NAV.filter(n=>!n[3]||band()==='adult').map(([r,i,t])=>{ const c=r==='requests'?pending().length:0;
-    return `<button data-go="${r}" class="${r===cur?'on':''}" aria-label="${t}">${ic(i)}${t}${c?`<span class="badge">${c}</span>`:''}</button>`; }).join('');
-  window.scrollTo(0,0);
+  return `<svg class="waves" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${g}</svg>`;
 }
-function signIn(name, age){ S=fresh(); S.user={name,age,bio:'',interests:[]}; save(); location.hash='#friends'; route(); }
 
-document.addEventListener('click', e => {
-  const go=e.target.closest('[data-go]'); if(go){ location.hash='#'+go.dataset.go; return; }
-  const b=e.target.closest('[data-act]'); if(!b) return;
-  const {act,id}=b.dataset;
-  if(act==='demo'){ const a=+b.dataset.age; signIn(a>=18?'DemoAdult':'DemoTeen', a); return; }
-  if(act==='send'){ S.sent[id]=true; toast('Request sent (demo)'); }
-  else if(act==='accept'){ S.resolved[id]='accepted'; toast('Friend added'); }
-  else if(act==='decline'){ S.resolved[id]='declined'; toast('Request declined'); }
-  else if(act==='join'){ S.joined[id]=!S.joined[id]; }
-  else if(act==='like'){ S.likes[id]=!S.likes[id]; }
-  else if(act==='filter'){ S.filter=id; }
-  else if(act==='report'){ toast('Reported. Thanks for keeping KINDRED safe (demo)'); return; }
-  else if(act==='block'){ S.blocked[id]=true; toast('Blocked. You will not see them again'); }
-  else if(act==='open'){ location.hash='#community/'+id; return; }
-  else if(act==='back'){ location.hash='#community'; return; }
-  else if(act==='signout'){ S=fresh(); save(); location.hash=''; route(); return; }
-  save(); const y=window.scrollY; route(); if(['like','filter','join'].includes(act)) window.scrollTo(0,y);
+/* ============ 6. COMPONENTS ============ */
+function tile(p){
+  const[a,b]=pal(p.name),pc=matchPct(p),st=S.sent[p.id];
+  return `<div class="tile" style="--a:${a};--b:${b}" data-act="person" data-id="${p.id}" role="button" tabindex="0" aria-label="View ${esc(p.name)}">
+    ${waves(7,300,400,hash(p.name)%9)}<span class="big">${esc(initials(p.name))}</span>
+    <span class="mt">${pc?pc+'% match':'New'}</span>
+    <div class="ov"><div class="tn">${esc(p.name.split(' ')[0])}, ${p.age}</div><div class="ti">${esc(p.interests.slice(0,2).join(' · '))}</div></div>
+    <button class="add" data-act="send" data-id="${p.id}" aria-label="Send request to ${esc(p.name)}" ${st?'disabled':''}>${ic(st?'check':'plus')}</button></div>`;
+}
+function orbit(list){
+  const spots=[[19,215],[19,35],[30,300],[30,120],[40,170],[40,350]];
+  const nodes=list.slice(0,6).map((p,i)=>{const[r,a]=spots[i],rad=a*Math.PI/180,pc=matchPct(p);
+    return `<button class="node" style="left:${(50+r*Math.cos(rad)).toFixed(1)}%;top:${(50+r*Math.sin(rad)).toFixed(1)}%" data-act="person" data-id="${p.id}" aria-label="${esc(p.name)}">${avatar(p.name)}${pc?`<span class="pc">${pc}%</span>`:''}</button>`}).join('');
+  return `<div class="orbit"><i class="rg" style="width:38%;height:38%"></i><i class="rg" style="width:60%;height:60%"></i><i class="rg" style="width:80%;height:80%"></i>
+    <div class="core"><span class="pulse"></span>${avatar(S.user.name,'ring')}</div>${nodes}</div>`;
+}
+const bubble=c=>`<div class="cmt ${S.user&&c.by===S.user.name?'me':''}">${avatar(c.by,'sm')}<div class="bub"><b>${esc(c.by)}</b>${esc(c.text)}</div></div>`;
+function postCard(p,g,showGroup){
+  const cs=[...p.comments,...(S.comments[p.id]||[])],liked=S.likes[p.id],n=(hash(p.id)%7)+1+(liked?1:0);
+  const when=p.id[0]==='n'?'just now':AGO[hash(p.id)%AGO.length]+' ago';
+  return `<article class="card"><div class="row">${avatar(p.by)}<div class="grow"><div class="name">${esc(p.by)}</div>
+    <div class="meta">${when}${showGroup?` · <button class="lnk" data-act="open" data-id="${g.id}">${g.icon} ${esc(g.name)}</button>`:''}</div></div></div>
+    <p class="bio">${esc(p.text)}</p>
+    <div class="row" style="margin-top:4px"><button class="bt ${liked?'on':''}" data-act="like" data-id="${p.id}" aria-label="Like">${ic('heart')}${n}</button><span class="meta">${cs.length} comment${cs.length===1?'':'s'}</span></div>
+    ${cs.map(bubble).join('')}
+    <form class="inl" data-form="comment" data-id="${p.id}"><input maxlength="200" placeholder="Add a comment…" aria-label="Comment" required><button class="bp" aria-label="Post comment">${ic('send')}</button></form></article>`;
+}
+function reqCard(p){
+  const sc=sharedCount(p);
+  return `<div class="card"><div class="row" data-act="person" data-id="${p.id}" style="cursor:pointer">${avatar(p.name)}<div class="grow"><div class="name">${esc(p.name)}</div><div class="meta">Age ${p.age} · wants to connect</div></div></div>
+    <p class="bio">${esc(p.bio)}</p>${tags(p.interests)}${sc?`<div class="shared">✓ ${sc} shared interest${sc>1?'s':''} with you</div>`:''}
+    <div class="acts"><button class="bp" data-act="accept" data-id="${p.id}">${ic('check')}Accept</button><button class="bd" data-act="decline" data-id="${p.id}">${ic('x')}Decline</button></div>
+    <div class="mini"><button class="bt" data-act="report" data-id="${p.id}">${ic('flag')}Report</button><button class="bt" data-act="block" data-id="${p.id}">${ic('ban')}Block</button></div></div>`;
+}
+
+/* ============ 7. VIEWS ============ */
+const Views={
+ welcome(){
+  return `<section class="hero">${waves(16,400,340,3)}<div class="hc">
+    <svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><circle cx="15" cy="20" r="11" fill="none" stroke="#a78bfa" stroke-width="3.2"/><circle cx="25" cy="20" r="11" fill="none" stroke="#fff" stroke-width="3.2"/></svg>
+    <div class="wm">KINDRED</div><h1 class="ht">Find your people.</h1><p>Friends and community, in spaces made for your age.</p></div></section>
+   <div class="card"><h2>Demo sign-in</h2><p class="meta">No email, password, phone or ID. Use a nickname, not your real name.</p>
+    <form id="signin" autocomplete="off">
+     <label for="nick">Nickname</label><input id="nick" maxlength="24" placeholder="e.g. Sky" required>
+     <label for="age">Age</label><input id="age" type="number" min="1" max="99" inputmode="numeric" placeholder="Your age" required>
+     <label class="check"><input type="checkbox" required><span>I understand this is a demo with fictional people, and I will not share personal details.</span></label>
+     <div class="err" id="err" role="alert"></div>
+     <button class="bp full" style="margin-top:14px">Enter KINDRED</button></form>
+    <div class="seg"><button class="bs" data-act="demo" data-age="15">Try as teen</button><button class="bs" data-act="demo" data-age="27">Try as adult</button></div>
+    <p class="foot" style="margin-top:12px">Age is self-declared in this demo. Real verification is not built yet.</p></div>`;
+ },
+ friends(){
+  const all=D().people.filter(p=>!S.blocked[p.id]);
+  const ranked=[...all].sort((a,b)=>sharedCount(b)-sharedCount(a)||a.name.localeCompare(b.name));
+  const cats=['All',...new Set(all.flatMap(p=>p.interests))].slice(0,12);
+  const shown=ranked.filter(p=>S.filter==='All'||p.interests.includes(S.filter));
+  const fr=friendsList();
+  return `<h1>Hi, ${esc(S.user.name)} 👋</h1><p class="sub">Friends for ${band()==='adult'?'adults (18+)':'teens (13–17)'}.</p>
+   ${fr.length?`<div class="frow">${fr.map(p=>`<button class="fr" data-act="person" data-id="${p.id}">${avatar(p.name)}${esc(p.name.split(' ')[0])}</button>`).join('')}</div>`:''}
+   <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Your orbit</h2><span class="meta">By shared interests</span></div>
+    ${ranked.length?orbit(ranked):`<div class="empty">${ic('users')}<br>No one here right now.</div>`}
+    ${mine().length?'':`<div class="privnote">${ic('heart')}<span>Add your interests to see who is closest to you.</span><button class="bs" data-go="profile" style="min-height:34px;padding:4px 12px">Add</button></div>`}
+    <p class="meta" style="text-align:center">Tap a face to open their profile. Location is never shown.</p></div>
+   <h2 style="margin:6px 0 8px">Discover</h2>
+   <div class="filters">${cats.map(c=>`<button class="f ${S.filter===c?'on':''}" data-act="filter" data-id="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+   ${shown.length?`<div class="grid">${shown.map(tile).join('')}</div>`:`<div class="empty">${ic('users')}<br>No one for this filter.</div>`}${foot()}`;
+ },
+ requests(){
+  const paused=S.settings.reqs==='none',items=pending();
+  return `<h1>Requests</h1><p class="sub">You decide who connects with you.</p>`+
+   (paused?`<div class="card"><h2>${ic('lock')} Requests are paused</h2><p class="meta">Nobody can send you new requests right now.</p><button class="bp full" style="margin-top:12px" data-act="setreq" data-id="all">Resume requests</button></div>`
+   :items.length?items.map(reqCard).join(''):`<div class="empty">${ic('mail')}<br>All caught up.<br>No pending requests.</div>`)+foot();
+ },
+ community(){
+  const tabs=`<div class="tabs" role="tablist"><button class="${S.ctab==='foryou'?'on':''}" data-act="ctab" data-id="foryou" role="tab">For you</button><button class="${S.ctab==='explore'?'on':''}" data-act="ctab" data-id="explore" role="tab">Explore</button></div>`;
+  const gs=D().groups;
+  if(S.ctab==='explore'){
+   const hs=[170,210,190,150,200,170];
+   return `<h1>Community</h1><p class="sub">Topic groups for ${band()==='adult'?'adults':'teens'}. Be kind, stay on topic.</p>${tabs}
+    <div class="mason">${gs.map((g,i)=>{const[a,b]=pal(g.name),j=S.joined[g.id];
+     return `<div class="mtile" style="--a:${a};--b:${b};min-height:${hs[i%hs.length]}px" data-act="open" data-id="${g.id}" role="button" tabindex="0">${waves(6,200,260,i+2)}
+      <div class="em">${g.icon}</div><div><div class="gn">${esc(g.name)}</div><div class="gm">${g.members+(j?1:0)} members</div>
+      <button class="${j?'joined':''}" data-act="join" data-id="${g.id}">${j?'Joined ✓':'Join'}</button></div></div>`}).join('')}</div>${foot()}`;
+  }
+  const joined=gs.filter(g=>S.joined[g.id]),src=joined.length?joined:gs;
+  const items=src.flatMap(g=>[...(S.newPosts[g.id]||[]),...g.posts].map(p=>({p,g})));
+  items.sort((x,y)=>(y.p.id[0]==='n')-(x.p.id[0]==='n'));
+  return `<h1>Community</h1><p class="sub">Posts from ${joined.length?'groups you joined':'all groups'}.</p>${tabs}
+   ${joined.length?'':`<div class="privnote">${ic('chat')}<span>Join groups in Explore to personalise this feed.</span><button class="bs" data-act="ctab" data-id="explore" style="min-height:34px;padding:4px 12px">Explore</button></div>`}
+   ${items.map(({p,g})=>postCard(p,g,true)).join('')}${foot()}`;
+ },
+ group(id){
+  const g=D().groups.find(x=>x.id===id);if(!g)return Views.community();
+  const[a,b]=pal(g.name),j=S.joined[g.id],posts=[...(S.newPosts[id]||[]),...g.posts];
+  return `<button class="back" data-act="back">${ic('back')}All groups</button>
+   <div class="gh" style="--a:${a};--b:${b}">${waves(9,400,200,5)}<div style="font-size:40px">${g.icon}</div><h1 style="margin-top:6px">${esc(g.name)}</h1>
+    <p style="opacity:.9;font-size:14px">${esc(g.desc)}</p>
+    <div class="row" style="margin-top:12px;justify-content:space-between"><span style="font-size:13px;opacity:.9">${g.members+(j?1:0)} members</span>
+     <button class="${j?'bo':'bp'}" style="${j?'color:#fff;border-color:rgba(255,255,255,.5)':''}" data-act="join" data-id="${g.id}">${j?'Joined ✓':'Join group'}</button></div></div>
+   <form class="card" data-form="post" data-id="${id}"><label for="np" style="margin-top:0">Share something</label>
+    <textarea id="np" maxlength="300" placeholder="Be friendly. Never post phone numbers, address or school." required></textarea>
+    <button class="bp full" style="margin-top:10px">${ic('plus')}Post to group</button></form>
+   ${posts.map(p=>postCard(p,g,false)).join('')}${foot()}`;
+ },
+ profile(){
+  const u=S.user,vis={friends:'Friends only',private:'Private',public:'Public'}[S.settings.vis];
+  return `<div class="banner">${waves(12,400,160,7)}<button class="gear" data-go="settings" aria-label="Settings">${ic('sliders')}</button></div>
+   <div class="pfh">${avatar(u.name,'xl ring')}<h1>${esc(u.name)}, ${u.age}</h1>
+    <span class="chip">${band()==='adult'?'Adult space · 18+':'Teen space · 13–17'}</span>
+    <p class="bio" style="max-width:360px;margin:12px auto 0">${esc(u.bio||'Add a short bio below.')}</p>
+    ${(u.interests||[]).length?`<div class="tags" style="justify-content:center">${u.interests.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
+    <p class="meta" style="margin-top:10px">${ic('eye')} Profile visible to: <b>${vis}</b></p></div>
+   <div class="stats"><div class="stat"><b>${friendsList().length}</b><span>Friends</span></div><div class="stat"><b>${Object.values(S.joined).filter(Boolean).length}</b><span>Groups</span></div><div class="stat"><b>${Object.values(S.newPosts).reduce((n,a)=>n+a.length,0)}</b><span>Posts</span></div></div>
+   <form class="card" id="profile"><h2>Edit profile</h2><p class="meta">Profile photo placeholder only. No uploads in this demo.</p>
+    <label for="pn">Display name</label><input id="pn" maxlength="24" value="${esc(u.name)}" required>
+    <label>Age</label><input value="${u.age}" disabled>
+    <label for="pb">Bio</label><textarea id="pb" maxlength="160" placeholder="A few words about you">${esc(u.bio||'')}</textarea>
+    <label for="pi">Interests (comma separated)</label><input id="pi" maxlength="80" value="${esc((u.interests||[]).join(', '))}" placeholder="Drawing, Chess, Music">
+    <button class="bp full" style="margin-top:16px">Save profile</button></form>${foot()}`;
+ },
+ settings(){
+  const st=S.settings,adult=band()==='adult';
+  const visOpts=[['friends','Friends only','Only people you accept can see your profile.'],['private','Private','Nobody can see your profile.'],['public','Public','Anyone in the adult space can see your profile.']];
+  const opt=(on,dis,act,id,t,d)=>`<button class="opt ${on?'on':''}" data-act="${act}" data-id="${id}" ${dis?'disabled':''}><span>${t}<small>${d}</small></span>${on?ic('check'):''}</button>`;
+  const bl=blockedList();
+  return `<button class="back" data-go="profile">${ic('back')}Profile</button><h1>Settings</h1><p class="sub">Privacy and safety are in your hands.</p>
+   <div class="card"><h2>${ic('eye')} Profile visibility</h2>
+    ${visOpts.map(([id,t,d])=>opt(st.vis===id,id==='public'&&!adult,'setvis',id,t+(id==='public'&&!adult?' (adults only)':''),d)).join('')}
+    <h2 style="margin-top:18px">${ic('mail')} Friend requests</h2>
+    ${opt(st.reqs==='all',false,'setreq','all','Open','People in your space can send you requests.')}
+    ${opt(st.reqs==='none',false,'setreq','none','Paused','Nobody can send you new requests.')}
+    <div class="privnote">${ic('pin')}<span>KINDRED never shows or asks for your location.</span></div></div>
+   <div class="card"><h2>Preferences</h2>
+    <div class="set">${ic('moon')}<div class="grow"><div class="name">Dark mode</div><div class="meta">Easier on the eyes at night</div></div><button class="tg" role="switch" aria-checked="${st.theme==='dark'}" aria-label="Dark mode" data-act="tgtheme"></button></div>
+    <div class="set">${ic('bell')}<div class="grow"><div class="name">Notifications</div><div class="meta">Demo only, nothing is sent</div></div><button class="tg" role="switch" aria-checked="${st.notif}" aria-label="Notifications" data-act="tgnotif"></button></div></div>
+   <div class="card"><h2>${ic('ban')} Blocked people (${bl.length})</h2>
+    ${bl.length?bl.map(p=>`<div class="set">${avatar(p.name)}<div class="grow"><div class="name">${esc(p.name)}</div><div class="meta">Age ${p.age}</div></div><button class="bs" data-act="unblock" data-id="${p.id}">Unblock</button></div>`).join(''):`<p class="meta">You have not blocked anyone.</p>`}</div>
+   <div class="card"><h2>${ic('shield')} Safety tips</h2>
+    <div class="tip">${ic('eye')}<span>Never share your phone number, address, school or passwords.</span></div>
+    <div class="tip">${ic('flag')}<span>See something wrong? Use Report on any profile.</span></div>
+    <div class="tip">${ic('ban')}<span>Block anyone who makes you uncomfortable.</span></div>
+    <div class="tip">${ic('users')}<span>Tell a trusted adult if something feels off.</span></div></div>
+   <button class="bo full" data-act="signout">Sign out and erase demo data</button>${foot()}`;
+ },
+ dating(){
+  return `<h1>Dating</h1><p class="sub">Adults only</p>
+   <div class="notice">${waves(12,400,300,4)}<div class="ring">${ic('lock')}</div><h2>Dating is for adults aged 18+ only</h2>
+    <p>This is a placeholder. This prototype has no dating profiles, matching or messaging, and none will ever be shown to anyone under 18.</p></div>
+   <div class="card" style="margin-top:14px"><p class="bio" style="margin:0">Your Friends and Community spaces stay completely separate from this section.</p></div>${foot()}`;
+ }
+};
+
+/* ============ 8. SHEETS ============ */
+function personSheet(p){
+  const pc=matchPct(p),sc=sharedCount(p),inc=D().incoming.some(x=>x.id===p.id),res=S.resolved[p.id];
+  let action;
+  if(res==='accepted')action=`<button class="bs full" disabled>${ic('check')}Friends</button>`;
+  else if(res==='declined')action=`<button class="bs full" disabled>Declined</button>`;
+  else if(inc)action=`<div class="acts"><button class="bp" data-act="accept" data-id="${p.id}">${ic('check')}Accept</button><button class="bd" data-act="decline" data-id="${p.id}">${ic('x')}Decline</button></div>`;
+  else if(S.sent[p.id])action=`<button class="bs full" disabled>${ic('check')}Request sent</button>`;
+  else action=`<button class="bp full" data-act="send" data-id="${p.id}">Send Request</button>`;
+  return `<div class="row" style="gap:14px">${avatar(p.name,'xl')}<div class="grow"><h2 style="margin:0 0 4px;font-size:22px">${esc(p.name)}, ${p.age}</h2>
+    <div class="meta">${band()==='adult'?'Adult space':'Teen space'}${pc?` · <span class="mint">${pc}% interest match</span>`:''}</div></div></div>
+   <p class="bio">${esc(p.bio)}</p>${tags(p.interests)}${sc?`<div class="shared">✓ ${sc} shared interest${sc>1?'s':''} with you</div>`:''}
+   <div class="privnote">${ic('pin')}<span>KINDRED never shows anyone's location.</span></div>${action}
+   <div class="mini"><button class="bt" data-act="report" data-id="${p.id}">${ic('flag')}Report</button><button class="bt" data-act="block" data-id="${p.id}">${ic('ban')}Block</button><button class="bt" data-act="closex">Close</button></div>`;
+}
+function reportSheet(p){
+  const rs=['Unkind or bullying','Fake or spam profile','Inappropriate content','I feel unsafe','Something else'];
+  return `<h2 style="font-size:20px">Report ${esc(p.name)}</h2><p class="meta">Reports are private. In a real app, a trained person would review each one.</p>
+   ${rs.map(r=>`<button class="opt" data-act="reason" data-id="${p.id}" data-r="${esc(r)}"><span>${esc(r)}</span></button>`).join('')}
+   <div class="acts"><button class="bd" data-act="block" data-id="${p.id}">${ic('ban')}Block instead</button><button class="bo" data-act="closex">Cancel</button></div>`;
+}
+function renderSheet(animate){
+  const el=$('#sheet');
+  if(!SHEET||!S.user){SHEET=null;el.innerHTML='';document.body.style.overflow='';return}
+  const p=findPerson(SHEET.id);if(!p){SHEET=null;el.innerHTML='';document.body.style.overflow='';return}
+  el.innerHTML=`<div class="bg ${animate?'anim':''}" data-act="closebg"><div class="sh" role="dialog" aria-modal="true"><div class="grab"></div>${SHEET.k==='report'?reportSheet(p):personSheet(p)}</div></div>`;
+  document.body.style.overflow='hidden';
+}
+
+/* ============ 9. ROUTER / EVENTS ============ */
+const NAV=[['friends','users','Friends'],['requests','mail','Requests'],['community','chat','Community'],['profile','user','Profile'],['dating','lock','Dating 18+',true]];
+let lastKey='';
+function applyTheme(){document.documentElement.dataset.theme=S.settings.theme;$('#tc').content=S.settings.theme==='dark'?'#070a1f':'#f4f3fb'}
+function route(){
+  applyTheme();
+  const h=(location.hash||'').slice(1)||'friends',nav=$('#nav'),view=$('#view'),chip=$('#chip'),y=window.scrollY;
+  let key,html;
+  if(!S.user){nav.hidden=true;chip.textContent='Demo';key='welcome';html=Views.welcome()}
+  else{
+    const[base,arg]=h.split('/');
+    if(base==='dating'&&band()!=='adult'){location.hash='#friends';return}   // safety guard: minors never reach dating
+    const cur=['friends','requests','community','profile','settings','dating'].includes(base)?base:'friends';
+    chip.textContent=band()==='adult'?'Adult · 18+':'Teen · 13–17';
+    key=cur+'/'+(cur==='community'&&arg?arg:'');
+    html=(cur==='community'&&arg)?Views.group(arg):Views[cur]();
+    const navOn=cur==='settings'?'profile':cur;
+    nav.hidden=false;
+    nav.innerHTML=NAV.filter(n=>!n[3]||band()==='adult').map(([r,i,t])=>{const c=r==='requests'&&S.settings.reqs!=='none'?pending().length:0;
+      return `<button data-go="${r}" class="${r===navOn?'on':''}" aria-label="${t}">${ic(i)}${t}${c?`<span class="badge">${c}</span>`:''}</button>`}).join('');
+  }
+  const changed=key!==lastKey;lastKey=key;
+  view.innerHTML=html;
+  if(changed){view.classList.remove('rise');void view.offsetWidth;view.classList.add('rise');window.scrollTo(0,0)}else window.scrollTo(0,y);
+  renderSheet(false);
+}
+function signIn(name,age){resetKeepTheme();S.user={name,age,bio:'',interests:[]};save();location.hash='#friends';route()}
+
+document.addEventListener('click',e=>{
+  const go=e.target.closest('[data-go]');if(go){SHEET=null;location.hash='#'+go.dataset.go;return}
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const{act,id}=b.dataset;
+  if(act==='closebg'){if(e.target===b){SHEET=null;renderSheet()}return}
+  if(act==='closex'){SHEET=null;renderSheet();return}
+  if(act==='demo'){const a=+b.dataset.age;signIn(a>=18?'DemoAdult':'DemoTeen',a);return}
+  if(act==='person'){SHEET={k:'person',id};renderSheet(true);return}
+  if(act==='report'){SHEET={k:'report',id};renderSheet(true);return}
+  if(act==='reason'){SHEET=null;renderSheet();toast(b.dataset.r==='I feel unsafe'?'Report sent. Please also tell a trusted adult.':'Report sent. Thank you (demo)');return}
+  if(act==='open'){SHEET=null;location.hash='#community/'+id;return}
+  if(act==='back'){location.hash='#community';return}
+  if(act==='signout'){SHEET=null;resetKeepTheme();save();location.hash='';route();return}
+  if(act==='send'){S.sent[id]=true;toast('Request sent (demo)')}
+  else if(act==='accept'){S.resolved[id]='accepted';toast('Friend added')}
+  else if(act==='decline'){S.resolved[id]='declined';toast('Request declined')}
+  else if(act==='join'){S.joined[id]=!S.joined[id]}
+  else if(act==='like'){S.likes[id]=!S.likes[id]}
+  else if(act==='filter'){S.filter=id}
+  else if(act==='ctab'){S.ctab=id}
+  else if(act==='block'){S.blocked[id]=true;SHEET=null;toast('Blocked. You can undo this in Settings')}
+  else if(act==='unblock'){delete S.blocked[id];toast('Unblocked')}
+  else if(act==='setvis'){if(id==='public'&&band()!=='adult')return;S.settings.vis=id}
+  else if(act==='setreq'){S.settings.reqs=id}
+  else if(act==='tgtheme'){S.settings.theme=S.settings.theme==='dark'?'light':'dark'}
+  else if(act==='tgnotif'){S.settings.notif=!S.settings.notif}
+  save();route();
 });
-
-document.addEventListener('submit', e => {
-  e.preventDefault(); const f=e.target;
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&SHEET){SHEET=null;renderSheet();return}
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches('[role=button][data-act]')){e.preventDefault();e.target.click()}
+});
+document.addEventListener('submit',e=>{
+  e.preventDefault();const f=e.target;
   if(f.id==='signin'){
-    const name=$('#nick').value.trim(), age=parseInt($('#age').value,10), err=$('#err');
-    if(!name){ err.textContent='Please choose a nickname.'; return; }
-    if(!(age>=1&&age<=99)){ err.textContent='Please enter a valid age.'; return; }
-    if(age<13){ err.textContent='KINDRED is for ages 13 and up. Please ask a parent or guardian about safe options for you.'; return; }
-    signIn(name,age); return;
-  }
+    const name=$('#nick').value.trim(),age=parseInt($('#age').value,10),err=$('#err');
+    if(!name){err.textContent='Please choose a nickname.';return}
+    if(!(age>=1&&age<=99)){err.textContent='Please enter a valid age.';return}
+    if(age<13){err.textContent='KINDRED is for ages 13 and up. Please ask a parent or guardian about safe options for you.';return}
+    signIn(name,age);return}
   if(f.id==='profile'){
-    S.user.name=$('#pn').value.trim()||S.user.name; S.user.bio=$('#pb').value.trim();
+    S.user.name=$('#pn').value.trim()||S.user.name;S.user.bio=$('#pb').value.trim();
     S.user.interests=$('#pi').value.split(',').map(s=>s.trim()).filter(Boolean).slice(0,8);
-    save(); toast('Profile saved'); route(); return;
-  }
-  if(f.dataset.form==='comment'){ const v=f.querySelector('input').value.trim(); if(!v) return;
-    (S.comments[f.dataset.id]=S.comments[f.dataset.id]||[]).push({by:S.user.name,text:v}); save(); route(); return; }
-  if(f.dataset.form==='post'){ const v=f.querySelector('textarea').value.trim(); if(!v) return;
-    (S.newPosts[f.dataset.id]=S.newPosts[f.dataset.id]||[]).unshift({id:'n'+Date.now(),by:S.user.name,text:v,comments:[]}); save(); toast('Posted'); route(); }
+    save();toast('Profile saved');route();return}
+  if(f.dataset.form==='comment'){const v=f.querySelector('input').value.trim();if(!v)return;
+    (S.comments[f.dataset.id]=S.comments[f.dataset.id]||[]).push({by:S.user.name,text:v});save();route();return}
+  if(f.dataset.form==='post'){const v=f.querySelector('textarea').value.trim();if(!v)return;
+    (S.newPosts[f.dataset.id]=S.newPosts[f.dataset.id]||[]).unshift({id:'n'+Date.now(),by:S.user.name,text:v,comments:[]});save();toast('Posted');route()}
 });
-window.addEventListener('hashchange', route);
+window.addEventListener('hashchange',route);
 route();
 
-/* ============ 7. PWA (installable app) ============ */
-if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
+/* ============ 10. PWA (installable app) ============ */
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
